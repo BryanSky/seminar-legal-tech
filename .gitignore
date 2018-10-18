@@ -1,0 +1,6 @@
+downloader/files/*
+downloader/node_modules/*
+.vscode/settings.json
+analyzer/.idea/
+analyzer/target/
+downloader/npm-debug.log

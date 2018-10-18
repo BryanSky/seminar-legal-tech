@@ -1,0 +1,23 @@
+{
+  "name": "downloader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BryanSky/seminar-legal-tech.git"
+  },
+  "author": "Benedict Lindner",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BryanSky/seminar-legal-tech/issues"
+  },
+  "homepage": "https://github.com/BryanSky/seminar-legal-tech#readme",
+  "dependencies": {
+    "mongodb": "^3.1.6",
+    "website-scraper": "^3.3.7"
+  }
+}
