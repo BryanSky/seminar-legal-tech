@@ -4,3 +4,7 @@ downloader/node_modules/*
 analyzer/.idea/
 analyzer/target/
 downloader/npm-debug.log
+dashboard/.vs/
+dashboard/Dashboard/bin/
+dashboard/Dashboard/obj/
+dashboard/packages/
