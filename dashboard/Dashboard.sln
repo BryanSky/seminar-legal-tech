@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28010.2019
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dashboard", "Dashboard\Dashboard.csproj", "{2F425B2A-09F9-4E00-BD64-B3BA7E60D977}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrainingSetBuilder", "TrainingSetBuilder\TrainingSetBuilder.csproj", "{491E291A-47A1-43C9-956C-626AF8F1D84E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{2F425B2A-09F9-4E00-BD64-B3BA7E60D977}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F425B2A-09F9-4E00-BD64-B3BA7E60D977}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F425B2A-09F9-4E00-BD64-B3BA7E60D977}.Release|Any CPU.Build.0 = Release|Any CPU
+		{491E291A-47A1-43C9-956C-626AF8F1D84E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{491E291A-47A1-43C9-956C-626AF8F1D84E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{491E291A-47A1-43C9-956C-626AF8F1D84E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{491E291A-47A1-43C9-956C-626AF8F1D84E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
