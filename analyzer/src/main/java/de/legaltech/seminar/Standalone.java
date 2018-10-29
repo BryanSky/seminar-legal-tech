@@ -1,5 +1,8 @@
 package de.legaltech.seminar;
 
+import de.legaltech.seminar.classifier.DoubleTranslationClassifier;
+import de.legaltech.seminar.classifier.HeuristicClassifier;
+import de.legaltech.seminar.classifier.StanfordCustomClassifier;
 import de.legaltech.seminar.entities.LegalFile;
 
 import javax.swing.*;
@@ -14,10 +17,13 @@ public class Standalone {
     private static ArrayList<IClassifier> classifiers = new ArrayList<IClassifier>();
 
     public static void main(String[] args){
-        initialize();
+        initialize(args);
     }
 
-    public static void initialize(){
+    public static void initialize(String[] args){
+        classifiers.add(new HeuristicClassifier());
+        classifiers.add(new DoubleTranslationClassifier());
+        classifiers.add(new StanfordCustomClassifier());
         //setup list of desired classifiers
         //load filenames
     }
