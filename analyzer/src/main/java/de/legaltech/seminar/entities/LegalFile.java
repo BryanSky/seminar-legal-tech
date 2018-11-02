@@ -26,4 +26,12 @@ public class LegalFile {
     public void setProcessed(boolean processed) {
         isProcessed = processed;
     }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
 }

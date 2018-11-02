@@ -7,4 +7,6 @@ public class HeuristicClassifier implements IClassifier {
     public void processFile(LegalFile file) {
 
     }
+
+    //use outcomes of different papers to classify a file
 }

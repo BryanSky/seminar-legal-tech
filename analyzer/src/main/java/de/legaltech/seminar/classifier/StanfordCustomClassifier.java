@@ -7,4 +7,6 @@ public class StanfordCustomClassifier implements IClassifier {
     public void processFile(LegalFile file) {
 
     }
+
+
 }
