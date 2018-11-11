@@ -6,6 +6,9 @@ import de.legaltech.seminar.IClassifier;
 import de.legaltech.seminar.StanfordLibHelper;
 import de.legaltech.seminar.entities.LegalFile;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 public class StanfordCustomClassifier implements IClassifier {
 
     public void processFile(LegalFile file) {
@@ -14,7 +17,13 @@ public class StanfordCustomClassifier implements IClassifier {
     }
 
     public void saveResult(LegalFile legalFile, ClassificationResult classificationResult) {
-        DbManager.Instance().saveResult(legalFile, classificationResult);
+        try {
+            DbManager.Instance().saveResult(legalFile, classificationResult);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
