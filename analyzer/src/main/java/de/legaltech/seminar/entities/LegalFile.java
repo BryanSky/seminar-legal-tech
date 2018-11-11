@@ -1,5 +1,7 @@
 package de.legaltech.seminar.entities;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 public class LegalFile {
@@ -7,8 +9,20 @@ public class LegalFile {
     private ArrayList<Paragraph> paragraphs = new ArrayList<Paragraph>();
     private boolean isProcessed;
 
-    public LegalFile(String content) {
+    private String content;
 
+    public LegalFile(String filename, String content) {
+        try {
+            setFilename(filename);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        this.content = content;
+        String[] splittedParagraphs = content.split("\n");
+        for (String s : splittedParagraphs) {
+            Paragraph p = new Paragraph(s);
+            paragraphs.add(p);
+        }
     }
 
     public LegalFile(){
@@ -31,7 +45,15 @@ public class LegalFile {
         return filename;
     }
 
-    public void setFilename(String filename) {
-        this.filename = filename;
+    public void setFilename(String filename) throws FileNotFoundException {
+        if((new File(filename)).exists()){
+            this.filename = filename;
+        }else{
+            throw new FileNotFoundException();
+        }
+    }
+
+    public ArrayList<Paragraph> getParagraphs() {
+        return paragraphs;
     }
 }
