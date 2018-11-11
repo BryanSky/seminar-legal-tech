@@ -80,7 +80,7 @@ public class StanfordLibHelper {
         return nE;
     }
 
-    private static String openFile(File file) throws IOException, BadLocationException {
+    public static String openFile(File file) throws IOException, BadLocationException {
         JEditorPane p = new JEditorPane();
         p.setContentType("text/rtf");
         EditorKit rtfKit = p.getEditorKitForContentType("text/rtf");
