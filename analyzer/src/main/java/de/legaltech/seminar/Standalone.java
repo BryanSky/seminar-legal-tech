@@ -5,6 +5,7 @@ import de.legaltech.seminar.classifier.HeuristicClassifier;
 import de.legaltech.seminar.classifier.StanfordCustomClassifier;
 import de.legaltech.seminar.entities.LegalFile;
 
+import javax.management.monitor.StringMonitor;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.EditorKit;
@@ -23,7 +24,7 @@ public class Standalone {
     }
 
     public static void initialize(String[] args){
-        //Default classifiers
+        args = new String[]{"Standalone", "C:\\Users\\bened\\Documents\\Test"};
         if(args.length==3){
             setupClassifiers(args[2]);
         }
@@ -69,8 +70,8 @@ public class Standalone {
         JEditorPane p = new JEditorPane();
         p.setContentType("text/rtf");
         EditorKit rtfKit = p.getEditorKitForContentType("text/rtf");
-        rtfKit.read(new FileReader(filename), p.getDocument(), 0);
-        String content = p.getText();
+        rtfKit.read(new FileReader(filename), p.getDocument(), 1);
+        String content = p.getDocument().getText(0, p.getDocument().getLength());
         return new LegalFile(content);
     }
 
