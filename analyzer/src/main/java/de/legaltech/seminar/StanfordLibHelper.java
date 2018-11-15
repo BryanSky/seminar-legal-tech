@@ -3,16 +3,16 @@ package de.legaltech.seminar;
 import de.legaltech.seminar.entities.LegalFile;
 import de.legaltech.seminar.entities.NamedEntity;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.sequences.SeqClassifierFlags;
 import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.util.StringUtils;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.EditorKit;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -120,5 +120,22 @@ public class StanfordLibHelper {
             }
         }
         return taggedContents;
+    }
+
+    public void trainAndWrite(String modelOutPath, String prop, String trainingFilepath) {
+        Properties props = StringUtils.propFileToProperties(prop);
+        props.setProperty("serializeTo", modelOutPath);
+        //if input use that, else use from properties file.
+        if (trainingFilepath != null) {
+            props.setProperty("trainFile", trainingFilepath);
+        }
+        SeqClassifierFlags flags = new SeqClassifierFlags(props);
+        CRFClassifier<CoreLabel> crf = new CRFClassifier<CoreLabel>(flags);
+        crf.train();
+        crf.serializeClassifier(modelOutPath);
+    }
+
+    public CRFClassifier getCustomModel(String modelPath) {
+        return CRFClassifier.getClassifierNoExceptions(modelPath);
     }
 }

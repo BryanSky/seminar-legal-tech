@@ -9,7 +9,7 @@ namespace Dashboard.Controllers
     public class ResultController : Controller
     {
         // GET: Result
-        public ActionResult Index()
+        public ActionResult Result()
         {
             return View();
         }

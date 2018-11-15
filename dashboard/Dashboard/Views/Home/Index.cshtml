@@ -1,31 +1,86 @@
-﻿@{
+﻿@model Dashboard.Models.StartupViewModel
+@{
     ViewBag.Title = "Home Page";
 }
 
 <div class="jumbotron">
     <h1>NER Dashboard</h1>
     <p class="lead">Use this dashboard to search for legal cases by specifying named entities.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+    <p><a href="https://nlp.stanford.edu/software/CRF-NER.shtml" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
 </div>
 
 <div class="row">
-    <div class="col-md-4">
-        <h2>Kläger</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p<select></select><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Angeklagter</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Gegenstand der Klage</h2>
-        <dropdown>You can easily find a web hosting company that offers the right mix of features and price for your applications.</dropdown>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="panel-title">
+                <b>Bitte Auswahl treffen!</b>
+            </div>
+            <form class="form-inline" action="/Index" method="post">
+                <div class="form-group">
+                    <select class="form-control col-md-3" id="klaeger" name="Kläger">
+                        @foreach (var item in Model.klaegerList)
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </select>
+                    <select class="form-control  col-md-3" id="object" name="Gegenstand">
+                        @foreach (var item in Model.themeList)
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </select>
+                    <select class="form-control col-md-3" id="angeklagter" name="Angeklagter">
+                        @foreach (var item in Model.targetList)
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </select>
+                    <select class="form-control col-md-3" id="tags" name="Tag">
+                        @foreach (var item in Model.tagList)
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </select>
+                </div>
+                <button type="submit" name="dropdownsubmit" value="aktualisieren" class="btn btn-primary pull-right">Anzeigen</button>
+            </form>
+        </div>
+        <div class="panel-body">
+            <div class="table">
+                <table id="resultTable" class="table table-striped display nowrap">
+                    <thead>
+                    <tr>
+                        <th>
+                            @Html.Label("Kläger")
+                        </th>
+                        <th>
+                            @Html.Label("Gegenstand")
+                        </th>
+                        <th>
+                            @Html.Label("Angeklagter")
+                        </th>
+                        <th>
+                            @Html.Label("Tag")
+                        </th>
+                        <th>
+                            @Html.Label("Dokument öffnen")
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.results)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(m => item.Klaeger)</td>
+                            <td>@Html.DisplayFor(m => item.Theme)</td>
+                            <td>@Html.DisplayFor(m => item.Target)</td>
+                            <td>@Html.DisplayFor(m => item.Tag)</td>
+                            <td><a href="@Html.Label("Download")"></a></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>

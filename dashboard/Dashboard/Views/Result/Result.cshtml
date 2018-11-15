@@ -1,0 +1,50 @@
+﻿@model Dashboard.Models.ResultViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="panel-title">
+            <b>Ergebnisse</b>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="table">
+            <table id="resultTable" class="table table-striped display nowrap">
+                <thead>
+                    <tr>
+                        <th>
+                            @Html.Label("Kläger")
+                        </th>
+                        <th>
+                            @Html.Label("Gegenstand")
+                        </th>
+                        <th>
+                            @Html.Label("Angeklagter")
+                        </th>
+                        <th>
+                            @Html.Label("Tag")
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.results)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(m => item.Klaeger)</td>
+                            <td>@Html.DisplayFor(m => item.Theme)</td>
+                            <td>@Html.DisplayFor(m => item.Target)</td>
+                            <td>@Html.DisplayFor(m => item.Tag)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+
+

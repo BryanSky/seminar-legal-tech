@@ -1,0 +1,5 @@
+Dashboard/bin/
+.vs/
+Dashboard/obj/
+packages/
+TrainingSetBuilder/obj/
