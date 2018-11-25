@@ -18,31 +18,31 @@
             <form class="form-inline" action="/Index" method="post">
                 <div class="form-group">
                     <select class="form-control col-md-3" id="klaeger" name="Kläger">
-                        @foreach (var item in Model.klaegerList)
+                        @foreach (var item in Model.PersonList)
                         {
                             <option value="@item">@item</option>
                         }
                     </select>
                     <select class="form-control  col-md-3" id="object" name="Gegenstand">
-                        @foreach (var item in Model.themeList)
+                        @foreach (var item in Model.OrganisationList)
                         {
                             <option value="@item">@item</option>
                         }
                     </select>
                     <select class="form-control col-md-3" id="angeklagter" name="Angeklagter">
-                        @foreach (var item in Model.targetList)
+                        @foreach (var item in Model.LocationList)
                         {
                             <option value="@item">@item</option>
                         }
                     </select>
                     <select class="form-control col-md-3" id="tags" name="Tag">
-                        @foreach (var item in Model.tagList)
+                        @foreach (var item in Model.TagList)
                         {
                             <option value="@item">@item</option>
                         }
                     </select>
                 </div>
-                <button type="submit" name="dropdownsubmit" value="aktualisieren" class="btn btn-primary pull-right">Anzeigen</button>
+                <button type="submit" name="dropdownsubmit" value="show" class="btn btn-primary pull-right">Anzeigen</button>
             </form>
         </div>
         <div class="panel-body">
@@ -51,13 +51,13 @@
                     <thead>
                     <tr>
                         <th>
-                            @Html.Label("Kläger")
+                            @Html.Label("Datum")
                         </th>
                         <th>
-                            @Html.Label("Gegenstand")
+                            @Html.Label("Titel")
                         </th>
                         <th>
-                            @Html.Label("Angeklagter")
+                            @Html.Label("Entscheidung")
                         </th>
                         <th>
                             @Html.Label("Tag")
@@ -68,7 +68,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach (var item in Model.results)
+                    @foreach (var item in Model.Results)
                     {
                         <tr>
                             <td>@Html.DisplayFor(m => item.Klaeger)</td>
