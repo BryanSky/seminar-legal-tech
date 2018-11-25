@@ -76,7 +76,7 @@ public class DocumentTranslatorLibHelper {
     }
 
     public static String translate(String text) throws Exception {
-        URL url = new URL (host + path + params);
+        URL url = new URL (host + path);
 
         List<RequestBody> objList = new ArrayList<RequestBody>();
         objList.add(new RequestBody(text));

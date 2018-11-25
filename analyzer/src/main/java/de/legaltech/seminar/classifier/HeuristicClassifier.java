@@ -12,6 +12,7 @@ public class HeuristicClassifier implements IClassifier {
     public static int vectorLength = 4;
     public static float threshold = 0;
     public static float[] baseProb = new float[vectorLength];
+    public static String[] targetWords = new String[]{"amt", "behörde", "gericht", "klag", "straße", "land", "BFH", "BGH"};
 
     private ClassificationResult result = new ClassificationResult();
 
@@ -44,6 +45,7 @@ public class HeuristicClassifier implements IClassifier {
 
     private void loadBaseProb(){
         //load base probability distribution from database
+        //calculate this beforehand an basis of the training data
     }
 
     public void saveResult(LegalFile legalFile, ClassificationResult classificationResult) {
@@ -107,8 +109,19 @@ public class HeuristicClassifier implements IClassifier {
     }
 
     private float calculateX4Prob(Sentence sentence, int position){
+        int count = 0;
+        for (String s : targetWords) {
+            if(sentence.get(position).contains(s)){
+                return 1;
+            }
+        }
         return 0;
     }
 
     //use outcomes of different papers to classify a file
+
+    //this is only used in test phase, not in production
+    private void evaluateClassifierPerformance(){
+
+    }
 }
