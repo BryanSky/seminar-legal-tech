@@ -8,6 +8,8 @@ import de.legaltech.seminar.entities.Sentence;
 
 public class HeuristicClassifier extends AbstractClassifier {
 
+    //Count absolute Häufigkeit der Entities!!!
+
     public static int vectorLength = 4;
     public static float threshold = 0;
     public static float[] baseProb = new float[vectorLength];
