@@ -1,13 +1,12 @@
 package de.legaltech.seminar.classifier;
 
 import de.legaltech.seminar.ClassificationResult;
-import de.legaltech.seminar.IClassifier;
 import de.legaltech.seminar.entities.LegalFile;
 import de.legaltech.seminar.entities.NamedEntity;
 import de.legaltech.seminar.entities.Paragraph;
 import de.legaltech.seminar.entities.Sentence;
 
-public class HeuristicClassifier implements IClassifier {
+public class HeuristicClassifier extends AbstractClassifier {
 
     public static int vectorLength = 4;
     public static float threshold = 0;

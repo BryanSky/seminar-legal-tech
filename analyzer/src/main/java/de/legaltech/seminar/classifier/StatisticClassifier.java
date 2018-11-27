@@ -4,7 +4,7 @@ import de.legaltech.seminar.ClassificationResult;
 import de.legaltech.seminar.IClassifier;
 import de.legaltech.seminar.entities.LegalFile;
 
-public class StatisticClassifier implements IClassifier {
+public class StatisticClassifier extends AbstractClassifier {
     public void processFile(LegalFile file) {
 
     }

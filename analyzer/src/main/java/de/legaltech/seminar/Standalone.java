@@ -72,7 +72,7 @@ public class Standalone {
         EditorKit rtfKit = p.getEditorKitForContentType("text/rtf");
         rtfKit.read(new FileReader(filename), p.getDocument(), 1);
         String content = p.getDocument().getText(0, p.getDocument().getLength());
-        return new LegalFile(content);
+        return new LegalFile(content, filename);
     }
 
     //optional if downloader triggers start of analyser

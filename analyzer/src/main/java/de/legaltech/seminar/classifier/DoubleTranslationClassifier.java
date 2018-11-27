@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import static de.legaltech.seminar.DocumentTranslatorLibHelper.LANGUAGE_DE;
 import static de.legaltech.seminar.DocumentTranslatorLibHelper.LANGUAGE_EN;
 
-public class DoubleTranslationClassifier implements IClassifier {
+public class DoubleTranslationClassifier extends AbstractClassifier {
 
     public void processFile(LegalFile file) {
         translateFile(file, LANGUAGE_DE, LANGUAGE_EN);
