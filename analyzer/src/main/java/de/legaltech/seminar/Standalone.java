@@ -3,9 +3,10 @@ package de.legaltech.seminar;
 import de.legaltech.seminar.classifier.DoubleTranslationClassifier;
 import de.legaltech.seminar.classifier.HeuristicClassifier;
 import de.legaltech.seminar.classifier.StanfordCustomClassifier;
+import de.legaltech.seminar.entities.ClassificationResult;
 import de.legaltech.seminar.entities.LegalFile;
+import de.legaltech.seminar.entities.MetaData;
 
-import javax.management.monitor.StringMonitor;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.EditorKit;
@@ -17,6 +18,9 @@ import java.util.ArrayList;
 public class Standalone {
 
     private static ArrayList<IClassifier> classifiers = new ArrayList<IClassifier>();
+    private static ArrayList<IPreprocessor> preprocessors = new ArrayList<IPreprocessor>();
+    private static boolean isTrainingCase = true;
+    private static boolean isTestingCase = false;
 
     //args[1] is a comma separated list of filenames to process or a folder
     public static void main(String[] args){
@@ -24,36 +28,47 @@ public class Standalone {
     }
 
     public static void initialize(String[] args){
-        args = new String[]{"Standalone", "C:\\Users\\bened\\Documents\\Test"};
-        if(args.length==3){
-            setupClassifiers(args[2]);
+        if(args.length==0){
+            args = new String[]{"C:\\Users\\bened\\Documents\\Test\\files"};
+        }
+        if(args.length==2){
+            setupClassifiers(args[1]);
         }
         classifiers.add(new HeuristicClassifier());
-        classifiers.add(new DoubleTranslationClassifier());
+        //classifiers.add(new DoubleTranslationClassifier());
         classifiers.add(new StanfordCustomClassifier());
-        if((new File(args[1])).isDirectory()){
-            processFilesInDirectory(args[1]);
+        preprocessors.add(new DefaultPreprocessor());
+        if((new File(args[0])).isDirectory()){
+            processFilesInDirectory(args[0]);
         }else{
-            String[] allFiles = args[1].split(";");
+            String[] allFiles = args[0].split(";");
             processAllFiles(allFiles);
         }
     }
 
     private static void setupClassifiers(String arg) {
         String[] cfs = arg.split(";");
-        //load classifiers and add them to list
+
     }
 
     private static void processAllFiles(String[] allFiles) {
         for (String file : allFiles) {
             try {
                 LegalFile legalFile = loadFile(file);
+                preprocess(legalFile);
                 classifyFile(legalFile);
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (BadLocationException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private static void preprocess(LegalFile legalFile) {
+        for (IPreprocessor processor : preprocessors) {
+            MetaData meta = processor.extractMetaData(legalFile.getContent(), legalFile.getId());
+            legalFile.setMetaData(meta);
         }
     }
 
@@ -75,16 +90,18 @@ public class Standalone {
         return new LegalFile(content, filename);
     }
 
-    //optional if downloader triggers start of analyser
-    private static LegalFile loadDbEntry(String filename){
-        MongoDbManager db = MongoDbManager.Instance();
-
-        return new LegalFile();
-    }
-
     private static void classifyFile(LegalFile file){
         for (IClassifier classifier : classifiers) {
-            classifier.processFile(file);
+            ClassificationResult result = classifier.processFile(file, isTrainingCase, isTestingCase);
+            result.setClassifier(classifier.getClass().getName());
+            file.classificationResultMap.put(classifier, result);
+            //TODO: save different file names!!
+            classifier.saveTaggedFile(file, file.getFilename().replace(".rtf", "_TAGGED.rtf"));
+            if(isTrainingCase || isTestingCase){
+                classifier.compareTaggedWithManuallyTagged(file.getFilename());
+            }
         }
+        DbManager.Instance().saveClassifiedFile(file);
+        //TODO: write all file content to several files
     }
 }
