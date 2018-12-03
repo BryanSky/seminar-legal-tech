@@ -1,5 +1,6 @@
 package de.legaltech.seminar;
 
+import de.legaltech.seminar.entities.ClassificationResult;
 import de.legaltech.seminar.entities.LegalFile;
 import de.legaltech.seminar.entities.NamedEntity;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
@@ -18,16 +19,20 @@ import java.util.regex.Pattern;
 
 public class StanfordLibHelper {
 
-    public static final String STANDARD_CLASSIFIER_ENGLISH = "";
+    public static final String STANDARD_CLASSIFIER_ENGLISH = "../../../../resources/data/classifiers/english.all.3class.distsim.crf.ser.gz";
     public static final String STANDARD_CLASSIFIER_GERMAN = "";
-    public static final String CUSTOM_CLASSIFIER_GERMAN = "";
+    public static final String CUSTOM_CLASSIFIER_GERMAN = "../../../../resources/data/classifiers/15german.all.3class.distsim.crf.ser.gz";
 
     public static ClassificationResult classify(String classifier, LegalFile legalFile){
         File file = new File(legalFile.getFilename());
         try {
-            String untaggedContent = openFile(file);
+            String untaggedContent = legalFile.getContent();
+            if((untaggedContent == null || untaggedContent.equals("")) && file.exists()){
+                untaggedContent = openFile(file);
+            }
             CRFClassifier<CoreMap> nerClassifier = CRFClassifier.getClassifier(new File(classifier));
             String taggedContent = extract(untaggedContent, nerClassifier);
+            legalFile.setTaggedContent(taggedContent);
             ClassificationResult classificationResult = buildClassificationResult(taggedContent);
             classificationResult.setFileName(legalFile.getFilename());
             return classificationResult;
@@ -41,13 +46,13 @@ public class StanfordLibHelper {
         return new ClassificationResult();
     }
 
-    private static ClassificationResult buildClassificationResult(String taggedContent) {
+    public static ClassificationResult buildClassificationResult(String taggedContent) {
         ClassificationResult result = new ClassificationResult();
         result.setYear((new Date()).getYear());
         ArrayList<Pattern> patternList = new ArrayList<Pattern>();
-        patternList.add(Pattern.compile("<LOCATION>[a-z, A-Z, 0-9]*</LOCATION>"));
-        patternList.add(Pattern.compile("<ORGANISATION>[a-z, A-Z, 0-9]*</ORGANISATION>"));
-        patternList.add(Pattern.compile("<PERSON>[a-z, A-Z, 0-9]*</PERSON>"));
+        patternList.add(Pattern.compile("<Location>[a-z, A-Z, 0-9]*</Location>"));
+        patternList.add(Pattern.compile("<Organisation>[a-z, A-Z, 0-9]*</Organisation>"));
+        patternList.add(Pattern.compile("<Person>[a-z, A-Z, 0-9]*</Person>"));
         for(int i=0; i<patternList.size(); i++){
             Matcher m = patternList.get(i).matcher(taggedContent);
             while(m.find()){
@@ -65,14 +70,14 @@ public class StanfordLibHelper {
         NamedEntity nE = new NamedEntity();
         String value = "";
         String tag = "";
-        if(regexMatch.startsWith("<LOCATION>")){
-            value = regexMatch.substring(10, regexMatch.length()-10);
+        if(regexMatch.startsWith("<Location>")){
+            value = regexMatch.substring(10, regexMatch.length()-11);
             tag = "Location";
-        } else if(regexMatch.startsWith("<ORGANISATION>")){
-            value = regexMatch.substring(14, regexMatch.length()-14);
+        } else if(regexMatch.startsWith("<Organisation>")){
+            value = regexMatch.substring(14, regexMatch.length()-15);
             tag = "Organisation";
-        }else if(regexMatch.startsWith("<PERSON>")){
-            value = regexMatch.substring(8, regexMatch.length()-8);
+        }else if(regexMatch.startsWith("<Person>")){
+            value = regexMatch.substring(8, regexMatch.length()-9);
             tag = "Person";
         }
         nE.setValue(value);
@@ -86,7 +91,6 @@ public class StanfordLibHelper {
         EditorKit rtfKit = p.getEditorKitForContentType("text/rtf");
         rtfKit.read(new FileReader(file), p.getDocument(), 0);
         rtfKit = null;
-        // convert to text
         EditorKit txtKit = p.getEditorKitForContentType("text/plain");
         Writer writer = new StringWriter();
         txtKit.write(writer, p.getDocument(), 0, p.getDocument().getLength());
@@ -122,10 +126,9 @@ public class StanfordLibHelper {
         return taggedContents;
     }
 
-    public void trainAndWrite(String modelOutPath, String prop, String trainingFilepath) {
+    public static void trainAndWrite(String modelOutPath, String prop, String trainingFilepath) {
         Properties props = StringUtils.propFileToProperties(prop);
         props.setProperty("serializeTo", modelOutPath);
-        //if input use that, else use from properties file.
         if (trainingFilepath != null) {
             props.setProperty("trainFile", trainingFilepath);
         }
@@ -133,9 +136,5 @@ public class StanfordLibHelper {
         CRFClassifier<CoreLabel> crf = new CRFClassifier<CoreLabel>(flags);
         crf.train();
         crf.serializeClassifier(modelOutPath);
-    }
-
-    public CRFClassifier getCustomModel(String modelPath) {
-        return CRFClassifier.getClassifierNoExceptions(modelPath);
     }
 }

@@ -6,10 +6,11 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+
+import com.google.gson.*;
+import de.legaltech.seminar.entities.LegalFile;
+import de.legaltech.seminar.entities.Paragraph;
+import de.legaltech.seminar.exceptions.ItemTooLargeException;
 
 public class DocumentTranslatorLibHelper {
     public static final String LANGUAGE_EN = "en";
@@ -18,22 +19,53 @@ public class DocumentTranslatorLibHelper {
     static String subscriptionKey = "ENTER KEY HERE";
 
     static String host = "https://api.cognitive.microsofttranslator.com";
-    static String path = "/transliterate?api-version=3.0";
+    static String path = "/translate?api-version=3.0";
 
-    // translate text in Japanese from Japanese script (i.e. Hiragana/Katakana/Kanji) to Latin script.
-    static String params = "&language=ja&fromScript=jpan&toScript=latn";
+    static String paramsToEN = "&from=de&to=en";
+    static String paramsToDE = "&from=en&to=de";
+    static String params = "";
 
 
-    public static boolean translate(String filename, String translationFilename, String sourceLanguage, String targetLanguage){
+    public static boolean translate(LegalFile legalFile, String sourceLanguage, String targetLanguage){
+        if(sourceLanguage.length()==2 && targetLanguage.length() == 2){
+            params = "&from=" + sourceLanguage + "&to=" + targetLanguage;
+        }else{
+            params = paramsToEN;
+        }
         try {
-            String content = readFile(filename);
-            String response = translate(content);
-            System.out.println (prettify (response));
+            String content = legalFile.getContent();
+            String[] paragraphs = content.split("\r\n");
+            String response = "";
+            for (String paragraph : paragraphs) {
+                try{
+                    response += translate(paragraph) + "\r\n";
+                }catch(ItemTooLargeException itle){
+                    response += translateSingleSentences(paragraph);
+                }
+            }
+            legalFile.setTranslatedContent(response);
         }
         catch (Exception e) {
             System.out.println (e);
+            return false;
         }
         return true;
+    }
+
+    private static String translateSingleSentences(String paragraph){
+        String[] sentences = paragraph.split(".");
+        String response = "";
+        for (String sentence : sentences) {
+            try{
+                response += translate(sentence) + ".";
+            }catch(ItemTooLargeException itle){
+                response += sentence + ".";
+            } catch (Exception e) {
+                e.printStackTrace();
+                response += sentence + ".";
+            }
+        }
+        return response;
     }
 
     private static String readFile(String filename) throws IOException, BadLocationException {
@@ -64,25 +96,46 @@ public class DocumentTranslatorLibHelper {
         wr.flush();
         wr.close();
 
-        StringBuilder response = new StringBuilder ();
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
-        String line;
-        while ((line = in.readLine()) != null) {
-            response.append(line);
-        }
-        in.close();
+        int responseCode = connection.getResponseCode();
+        if(responseCode==401){
+            System.out.println("401: Unauthorized");
+            return content;
+        }else if(responseCode==400){
+            System.out.println("400: Bad request");
+        } else if(responseCode == 200){
+            StringBuilder response = new StringBuilder ();
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+            String line;
+            while ((line = in.readLine()) != null) {
+                response.append(line);
+            }
+            in.close();
 
-        return response.toString();
+            return response.toString();
+        }
+        System.out.println("An error occured while translation");
+        return content;
     }
 
-    public static String translate(String text) throws Exception {
-        URL url = new URL (host + path);
+    public static String translate(String text) throws Exception, ItemTooLargeException {
+        URL url = new URL (host + path + params);
 
         List<RequestBody> objList = new ArrayList<RequestBody>();
         objList.add(new RequestBody(text));
         String content = new Gson().toJson(objList);
+        if(content.length()>5000){
+            throw new ItemTooLargeException();
+        }
+        String response = Post(url, content);
+        return extractTranslation(response);
+    }
 
-        return Post(url, content);
+    private static String extractTranslation(String response) {
+        JsonParser parser = new JsonParser();
+        JsonElement json = parser.parse(response);
+        JsonArray array = json.getAsJsonObject().getAsJsonArray("translations");
+        JsonElement translation = array.get(0);
+        return (translation.getAsJsonObject().get("text")).toString();
     }
 
     public static String prettify(String json_text) {
