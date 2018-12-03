@@ -93,6 +93,9 @@ public class ClassifierTrainer {
                 targetVectors[2] += String.valueOf(f) + "\t";
             }
             Path file = Paths.get(vectorResultFile);
+            for (int i=0; i<targetVectors.length; i++) {
+                targetVectors[i] = targetVectors[i].replace("null", "");
+            }
             try {
                 Files.write(file, Arrays.asList(targetVectors), StandardCharsets.UTF_8);
             } catch (IOException e) {
@@ -164,7 +167,7 @@ public class ClassifierTrainer {
             for (float[] item : vectorList) {
                 mean[i] += item[i];
             }
-            mean[i] /= length;
+            mean[i] /= vectorList.size();
         }
         return mean;
     }
