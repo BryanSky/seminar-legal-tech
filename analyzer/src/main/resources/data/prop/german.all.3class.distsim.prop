@@ -1,0 +1,4 @@
+ner.model=classifiers/german.all.3class.distsim.crf.ser.gz
+ner.useSUTime=false
+ner.combinationMode=HIGH_RECALL
+map = word=0,answer=1
