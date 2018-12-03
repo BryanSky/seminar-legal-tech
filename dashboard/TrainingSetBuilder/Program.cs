@@ -22,7 +22,7 @@ namespace TrainingSetBuilder {
                         while (index > -1) {
                             index = fullText.IndexOf("highlight7", ++index);
                             if (index > -1) {
-                                string value = ExtractWord(fullText, index);
+                                string value = ExtractWord(fullText, index).Replace(" ", "").Replace("\r\n\r\n", "\r\n");
                                 result.Add(value + "\tPerson");
                             }
                         }
@@ -31,7 +31,7 @@ namespace TrainingSetBuilder {
                         while (index > -1) {
                             index = fullText.IndexOf("highlight3", ++index);
                             if (index > -1) {
-                                string value = ExtractWord(fullText, index);
+                                string value = ExtractWord(fullText, index).Replace(" ", "").Replace("\r\n\r\n", "\r\n");
                                 result.Add(value + "\tLocation");
                             }
                         }
@@ -40,7 +40,7 @@ namespace TrainingSetBuilder {
                         while (index > -1) {
                             index = fullText.IndexOf("highlight4", ++index);
                             if (index > -1) {
-                                string value = ExtractWord(fullText, index);
+                                string value = ExtractWord(fullText, index).Replace(" ", "").Replace("\r\n\r\n", "\r\n");
                                 result.Add(value + "\tOrganisation");
                             }
                         }
@@ -72,7 +72,7 @@ namespace TrainingSetBuilder {
             }
             string formatedString = fullText.Substring(startIndex, endIndex - startIndex);
             startIndex = formatedString.IndexOf("charrsid");
-            return Regex.Replace(formatedString.Substring(startIndex + 7, (formatedString.Length - (startIndex + 7))), "d[0-9]*", "");
+            return Regex.Replace(formatedString.Substring(startIndex + 7, (formatedString.Length - (startIndex + 7))), "d[0-9]+", "");
         }
 
         private static string ReadFullFile(string filename) {
@@ -110,7 +110,10 @@ namespace TrainingSetBuilder {
                     fullText = ReplaceWord(fullText, index, endIndex, value, "<ORGANISATION>" + value + "</ORGANISATION>");
                 }
             }
-            File.WriteAllText(file.Replace(".rtf", "_TAGGED.rtf"), fullText);
+
+            string correctedFile = fullText.Replace("highlight7", "\\highlight7").Replace("highlight3", "\\highlight3")
+                .Replace("highlight4", "\\highlight4");
+            File.WriteAllText(file.Replace(".rtf", "_TAGGED.rtf"), correctedFile);
         }
 
         private static string ReplaceWord(string fullText, int startIndex, int endIndex, string original, string replacement) {
