@@ -1,6 +1,6 @@
 package de.legaltech.seminar.classifier;
 
-import de.legaltech.seminar.ClassificationResult;
+import de.legaltech.seminar.entities.ClassificationResult;
 import de.legaltech.seminar.entities.LegalFile;
 import de.legaltech.seminar.entities.NamedEntity;
 import de.legaltech.seminar.entities.Paragraph;
@@ -17,10 +17,11 @@ public class HeuristicClassifier extends AbstractClassifier {
 
     private ClassificationResult result = new ClassificationResult();
 
-    public void processFile(LegalFile file) {
+    public ClassificationResult processFile(LegalFile file, boolean training, boolean test) {
         for (Paragraph paragraph : file.getParagraphs()) {
             processParagraph(paragraph);
         }
+        return result;
     }
 
     private void processParagraph(Paragraph paragraph) {
@@ -41,16 +42,16 @@ public class HeuristicClassifier extends AbstractClassifier {
     }
 
     private NamedEntity classifyEntity(String s) {
-        return null;
+        NamedEntity nE = new NamedEntity();
+        nE.setValue(s);
+        nE.setTag("Generic");
+        //TODO: classification based on freebaseDB
+        return nE;
     }
 
     private void loadBaseProb(){
         //load base probability distribution from database
         //calculate this beforehand an basis of the training data
-    }
-
-    public void saveResult(LegalFile legalFile, ClassificationResult classificationResult) {
-
     }
 
     private boolean probabilityAboveThreshold(float[] baseVector, float[] classificationVector, float threshold){
@@ -67,7 +68,7 @@ public class HeuristicClassifier extends AbstractClassifier {
         return Math.sqrt(overallDist);
     }
 
-    private float[] buildProbabilityVector(Sentence sentence, int position){
+    public static float[] buildProbabilityVector(Sentence sentence, int position){
         float[] probVec = new float[vectorLength];
         probVec[0] = calculateX1Prob(sentence, position);
         probVec[1] = calculateX2Prob(sentence, position);
@@ -76,28 +77,29 @@ public class HeuristicClassifier extends AbstractClassifier {
         return probVec;
     }
 
-    private float calculateX1Prob(Sentence sentence, int position){
+    private static float calculateX1Prob(Sentence sentence, int position){
         if(position==0){
             return 0;
         }
         String wordBefore = sentence.get(position-1);
         if(wordBefore.equalsIgnoreCase("der") ||
                 wordBefore.equalsIgnoreCase("die") ||
-                wordBefore.equalsIgnoreCase("des")){
+                wordBefore.equalsIgnoreCase("des") ||
+                wordBefore.equalsIgnoreCase("in")){
             return 1;
         }
         return 0;
     }
 
-    private float calculateX2Prob(Sentence sentence, int position){
+    private static float calculateX2Prob(Sentence sentence, int position){
         String word = sentence.get(position);
-        if(Character.isUpperCase(word.charAt(0))){
+        if(!word.equals("") && Character.isUpperCase(word.charAt(0))){
             return 1;
         }
         return 0;
     }
 
-    private float calculateX3Prob(Sentence sentence, int position){
+    private static float calculateX3Prob(Sentence sentence, int position){
         if(position==0){
             return 0;
         }
@@ -109,10 +111,21 @@ public class HeuristicClassifier extends AbstractClassifier {
         return 0;
     }
 
-    private float calculateX4Prob(Sentence sentence, int position){
+    private static float calculateX4Prob(Sentence sentence, int position){
         int count = 0;
         for (String s : targetWords) {
             if(sentence.get(position).contains(s)){
+                return 1;
+            }
+        }
+        return 0;
+    }
+
+    //TODO: get ready: names of authors often splitted by slash´s
+    private static float calculateX5Prob(Sentence sentence, int position){
+        int count = 0;
+        for (String s : targetWords) {
+            if(sentence.get(position).contains("/")){
                 return 1;
             }
         }
