@@ -2,6 +2,7 @@ package de.legaltech.seminar.entities;
 
 public class NamedEntity {
 
+    private int id;
     private Tag tag;
     private String value;
     private int startInText;
@@ -37,5 +38,13 @@ public class NamedEntity {
 
     public String getValue() {
         return value;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

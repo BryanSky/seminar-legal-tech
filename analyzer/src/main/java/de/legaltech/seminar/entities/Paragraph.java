@@ -9,11 +9,12 @@ public class Paragraph {
 
     public Paragraph(String s) {
         this.content = s;
-        String[] splittedSentences = s.split(".");
-        for (String str : splittedSentences) {
-            Sentence sentence = new Sentence(str);
-            sentences.add(sentence);
-        }
+        sentences.add(new Sentence(s));
+//        String[] splittedSentences = s.split(Pattern.quote("."));
+//        for (String str : splittedSentences) {
+//            Sentence sentence = new Sentence(str);
+//            sentences.add(sentence);
+//        }
     }
 
     public ArrayList<Sentence> getSentences() {
