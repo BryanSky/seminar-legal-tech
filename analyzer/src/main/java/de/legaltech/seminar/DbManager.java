@@ -16,7 +16,7 @@ public class DbManager {
 
     protected static String driverName = "oracle.jdbc.driver.OracleDriver";
     protected static String DbName = "legalDB";
-    protected static String connectionUrl = "Server=localhost\\SQLEXPRESS;Database=master;Trusted_Connection=True";
+    protected static String connectionUrl = "jdbc:sqlserver://localhost:1433;databaseName=legalDB;Trusted_Connection=True";
     private static String username = "";
     protected static String password = "";
 
@@ -24,11 +24,11 @@ public class DbManager {
 
     private DbManager(){
         try{
-            Class.forName(driverName);
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             conn = DriverManager.getConnection(connectionUrl, username, password);
             conn.setAutoCommit(false);
         }catch(SQLException sqlEx){
-
+            sqlEx.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
