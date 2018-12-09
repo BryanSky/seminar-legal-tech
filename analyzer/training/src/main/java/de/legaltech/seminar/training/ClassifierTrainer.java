@@ -1,21 +1,25 @@
 package de.legaltech.seminar.training;
 
-import de.legaltech.seminar.Standalone;
-import de.legaltech.seminar.StanfordLibHelper;
+import com.google.gson.annotations.Since;
+import de.legaltech.seminar.*;
+import de.legaltech.seminar.classifier.DoubleTranslationClassifier;
 import de.legaltech.seminar.classifier.HeuristicClassifier;
-import de.legaltech.seminar.entities.LegalFile;
-import de.legaltech.seminar.entities.Paragraph;
-import de.legaltech.seminar.entities.Sentence;
+import de.legaltech.seminar.classifier.StanfordCustomClassifier;
+import de.legaltech.seminar.constants.AnalyserConstant;
+import de.legaltech.seminar.entities.*;
+import de.legaltech.seminar.exceptions.ItemTooLargeException;
 
 import javax.swing.text.BadLocationException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+@Since(value = 1.8)
 public class ClassifierTrainer {
 
     private static String tsvDir = "C:/Users/bened/Desktop/TrainingFiles/tsv/";
@@ -25,7 +29,10 @@ public class ClassifierTrainer {
     private static String vectorResultFile = "C:/Users/bened/Desktop/TrainingFiles/result/heuristic.txt";
 
     public static void main(String args[]){
-        trainHeuristicClassifier("C:/Users/bened/Desktop/TrainingFiles/");
+        testDoubleTranslationClassifier();
+        //testHeuristicClassifier();
+        //testCustomStanfordClassifier();
+        //trainHeuristicClassifier("C:/Users/bened/Desktop/TrainingFiles/");
     }
 
     private void trainCustomStanfordClassifier(){
@@ -104,6 +111,48 @@ public class ClassifierTrainer {
         }
     }
 
+    private static void testHeuristicClassifier(){
+        IClassifier classifier = new HeuristicClassifier();
+        test(classifier);
+    }
+
+    private static void testCustomStanfordClassifier(){
+        test(new StanfordCustomClassifier());
+    }
+
+    private static void testDoubleTranslationClassifier(){
+        test(new DoubleTranslationClassifier());
+    }
+
+
+    private static void test(IClassifier classifier){
+        String testDir = AnalyserConstant.docRootPath + "test/";
+        File dir = new File(testDir);
+        if(dir.exists() && dir.isDirectory()){
+            List<String> allFiles = Arrays.asList(dir.list());
+            allFiles.stream().forEach(file -> {
+                if(!(file.contains("TAGGED") || file.contains(".tsv"))){
+                    LegalFile lF = null;
+                    try {
+                        lF = Standalone.loadFile(dir.getAbsolutePath() + "/" + file);
+                        ClassificationResult cR = classifier.processFile(lF, false, true);
+                        int[] evaluation = evaluateClassificationResult(cR, lF.getFilename().replace(".rtf", ".tsv"));
+                        ArrayList<String> preContent = new ArrayList<>();
+                        preContent.add(classifier.getClass().getSimpleName().replace("/", "_"));
+                        preContent.add(lF.getFileOnlyNameBase().replace("/", "_"));
+                        preContent.add(String.valueOf(new Date().getTime()).replace("/", "_"));
+                        FileManager.WriteIntArray(preContent, evaluation, AnalyserConstant.outputRootPath
+                                .concat(preContent.get(1)).concat(preContent.get(2)).concat(".txt"));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (BadLocationException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    }
+
     private static Map<Integer,String> extractPositions(Sentence s) {
         s.setContent(cleanString(s.getContent()));
         Map<Integer, String> positionMap = new HashMap<>();
@@ -170,5 +219,181 @@ public class ClassifierTrainer {
             mean[i] /= vectorList.size();
         }
         return mean;
+    }
+
+    //returns: person: right | missing | wrong; organisation: right | missing | wrong; location: right | missing | wrong
+    //ignore multiple occurances
+    private static int[] evaluateClassificationResult(ClassificationResult classificationResult, String tsvMap){
+        boolean isDTC = classificationResult.getClassifier().contains("DoubleTranslationClassifier");
+        int misclassifiedIndex = 2;
+        int[] evaluation = new int[9];
+        Map<String, String> tagMap = new HashMap<>();
+        Path path = Paths.get(tsvMap);
+        Charset charset = Charset.forName("UTF-8");
+        try {
+            List<String> lines = Files.readAllLines(path, charset);
+            for (String line : lines) {
+                String[] map = line.split("\t");
+                if(!tagMap.containsKey(map[0]) && map.length==2)
+                tagMap.put(map[0], map[1]);
+            }
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+        if(isDTC)return evaluateDTC(classificationResult, tagMap);
+        List<String> visited = new ArrayList<>();
+        for (NamedEntity nE : classificationResult.getNamedEntities()) {
+            visited.add(nE.getValue());
+            String clazz = tagMap.get(nE.getValue());
+            if(clazz == null){
+                clazz = nE.getTag().getTagType();
+            }
+            if(clazz.equals("Person") || clazz.equals("PERSON")){
+                if(tagMap.containsKey(nE.getValue())){
+                    evaluation[0] += 1;
+                }else{
+                    evaluation[2] += 1;
+                }
+            }else if(clazz.equals("Organisation") || clazz.equals("ORGANIZATION")){
+                if(tagMap.containsKey(nE.getValue())){
+                    evaluation[3] += 1;
+                }else{
+                    evaluation[5] += 1;
+                }
+            }else if(clazz.equals("Location") || clazz.equals("LOCATION")){
+                if(tagMap.containsKey(nE.getValue())){
+                    evaluation[6] += 1;
+                }else{
+                    evaluation[8] += 1;
+                }
+            }else{
+                evaluation[misclassifiedIndex] += 1;
+                misclassifiedIndex = (misclassifiedIndex+3)%9;
+            }
+        }
+        for (String key : tagMap.keySet()) {
+            if(!visited.contains(key)){
+                String clazz = tagMap.get(key);
+                if(clazz.equals("PERSON") || clazz.equals("Person")){
+                    evaluation[1] += 1;
+                }else if(clazz.equals("ORGANISATION") || clazz.equals("Organisation") || clazz.equals("Organization")){
+                    evaluation[4] += 1;
+                }else if(clazz.equals("LOCATION") || clazz.equals("Location")){
+                    evaluation[7] += 1;
+                }
+            }
+        }
+        return evaluation;
+    }
+
+    private static int[] evaluateDTC(ClassificationResult classificationResult, Map<String, String> tagMap){
+        int[] evalResult = new int[9];
+        int misclassifiedIndex = 2;
+        Map<Integer, Map<String, String>> tagMapTranslations = null;
+        try {
+            tagMapTranslations = translateTagMap(tagMap);
+            List<String> visited = new ArrayList<>();
+            for (NamedEntity nE : classificationResult.getNamedEntities()) {
+                visited.add(nE.getValue());
+                String clazz = getClazz(tagMapTranslations, nE.getValue());
+                if(clazz == null){
+                    clazz = nE.getTag().getTagType();
+                }
+                if(clazz.equals("Person") || clazz.equals("PERSON")){
+                    if(containsKey(tagMapTranslations, nE.getValue())){
+                        evalResult[0] += 1;
+                    }else{
+                        evalResult[2] += 1;
+                    }
+                }else if(clazz.equals("Organisation") || clazz.equals("ORGANIZATION")){
+                    if(containsKey(tagMapTranslations, nE.getValue())){
+                        evalResult[3] += 1;
+                    }else{
+                        evalResult[5] += 1;
+                    }
+                }else if(clazz.equals("Location") || clazz.equals("LOCATION")){
+                    if(containsKey(tagMapTranslations, nE.getValue())){
+                        evalResult[6] += 1;
+                    }else{
+                        evalResult[8] += 1;
+                    }
+                }else{
+                    evalResult[misclassifiedIndex] += 1;
+                    misclassifiedIndex = (misclassifiedIndex+3)%9;
+                }
+            }
+            for (int key : getUnvisited(tagMapTranslations, visited)) {
+                String clazz = getClazz(tagMapTranslations, key);
+                if(clazz.equals("PERSON") || clazz.equals("Person")){
+                    evalResult[1] += 1;
+                }else if(clazz.equals("ORGANISATION") || clazz.equals("Organization") || clazz.equals("Organisation")){
+                    evalResult[4] += 1;
+                }else if(clazz.equals("LOCATION") || clazz.equals("Location")){
+                    evalResult[7] += 1;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } catch (ItemTooLargeException e) {
+            e.printStackTrace();
+        }
+        return evalResult;
+    }
+
+    private static Map<Integer, Map<String, String>> translateTagMap(Map<String, String> tagMap) throws Exception, ItemTooLargeException {
+        Map<Integer, Map<String, String>> translatedMap = new HashMap<>();
+        int counter = 0;
+        for (String tag : tagMap.keySet()) {
+            List<String> translations = DocumentTranslatorLibHelper.translateMultipleOutcomes(tag);
+            Map<String, String> translationMap = new HashMap<>();
+            for (String translation : translations) {
+                translationMap.put(translation, tagMap.get(tag));
+            }
+            translatedMap.put(counter++, translationMap);
+        }
+        return translatedMap;
+    }
+
+    private static List<Integer> getUnvisited(Map<Integer, Map<String, String>> tagMapTranslations, List<String> visited) {
+        List<Integer> unvisited = new ArrayList<>();
+        for (int i=0; i<tagMapTranslations.size(); i++) {
+            Map<String, String> valueMap = tagMapTranslations.get(i);
+            if(valueMap != null){
+                boolean isVisited = false;
+                for (String k : valueMap.keySet()) {
+                    if(visited.contains(k)){
+                        isVisited = true;
+                    }
+                }
+                if(!isVisited){
+                    unvisited.add(i);
+                }
+            }
+        }
+        return unvisited;
+    }
+
+    private static boolean containsKey(Map<Integer, Map<String, String>> tagMapTranslations, String value) {
+        for (int i=0; i<tagMapTranslations.size(); i++) {
+            Map<String, String> valueMap = tagMapTranslations.get(i);
+            if(valueMap != null){
+                if(valueMap.containsKey(value))return true;
+            }
+        }
+        return false;
+    }
+
+    private static String getClazz(Map<Integer, Map<String, String>> tagMapTranslations, String value) {
+        for (int i=0; i<tagMapTranslations.size(); i++) {
+            Map<String, String> valueMap = tagMapTranslations.get(i);
+            if(valueMap != null){
+                if(valueMap.containsKey(value))return valueMap.get(value);
+            }
+        }
+        return "null";
+    }
+
+    private static String getClazz(Map<Integer, Map<String, String>> tagMapTranslations, int value) {
+        return tagMapTranslations.get(value).values().iterator().next();
     }
 }
