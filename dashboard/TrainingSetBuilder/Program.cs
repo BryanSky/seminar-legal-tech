@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
 namespace TrainingSetBuilder {
     class Program {
 
-        private static string trainDir = "C:\\Users\\bened\\Desktop\\TrainingFiles";
-        private static string testDir = "C:\\Users\\bened\\Desktop\\TrainingFiles\\TestFiles";
+        private static readonly string TrainDir = Environment.GetEnvironmentVariable("LocalAppData") + "/LegalTech/TrainingFiles";
+        private static string testDir = Environment.GetEnvironmentVariable("LocalAppData") + "/LegalTech/TrainingFiles/TestFiles";
 
         static void Main(string[] args) {
             if (args.Length == 0) {
                 string[] allFiles = null;
-                if (Directory.Exists(trainDir)) {
-                    allFiles = Directory.GetFiles(trainDir);
+                if (Directory.Exists(TrainDir)) {
+                    allFiles = Directory.GetFiles(TrainDir);
                 }
                 if (allFiles != null) {
                     foreach (var file in allFiles) {

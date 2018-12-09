@@ -3,6 +3,7 @@ package de.legaltech.seminar;
 import de.legaltech.seminar.classifier.DoubleTranslationClassifier;
 import de.legaltech.seminar.classifier.HeuristicClassifier;
 import de.legaltech.seminar.classifier.StanfordCustomClassifier;
+import de.legaltech.seminar.constants.AnalyserConstant;
 import de.legaltech.seminar.entities.ClassificationResult;
 import de.legaltech.seminar.entities.LegalFile;
 import de.legaltech.seminar.entities.MetaData;
@@ -29,7 +30,7 @@ public class Standalone {
 
     public static void initialize(String[] args){
         if(args.length==0){
-            args = new String[]{"C:\\Users\\bened\\Documents\\Test\\files"};
+            args = new String[]{AnalyserConstant.fileBlobUnprocessed};
         }
         if(args.length==2){
             setupClassifiers(args[1]);

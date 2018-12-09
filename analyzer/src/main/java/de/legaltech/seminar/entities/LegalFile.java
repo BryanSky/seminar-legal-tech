@@ -16,7 +16,8 @@ public class LegalFile {
     private String fullFileName;
     private String fileOnlyNameBase;
     private String fileOnlyNameTagged;
-    private String fileOnlyNameTranslated;
+    private String fileOnlyNameTranslatedEN;
+    private String fileOnlyNameBacktranslatedDE;
     private ArrayList<Paragraph> paragraphs = new ArrayList<Paragraph>();
     private boolean isProcessed;
     private boolean isSaved = false;
@@ -24,6 +25,7 @@ public class LegalFile {
     private String content;
     private String taggedContent;
     private String translatedContent;
+    private String translatedTaggedContent;
 
     private MetaData metaData;
 
@@ -49,10 +51,11 @@ public class LegalFile {
     }
 
     private void setFileNames(String filename){
-        setFilePath(filename.substring(0, filename.lastIndexOf("\\")+1));
-        setFileOnlyNameBase(filename.substring(filename.lastIndexOf("\\")+1));
+        setFilePath(filename.substring(0, filename.lastIndexOf("/")+1));
+        setFileOnlyNameBase(filename.substring(filename.lastIndexOf("/")+1));
         setFileOnlyNameTagged(getFileOnlyNameBase().replace(".rtf", "_TAGGED.rtf"));
-        setFileOnlyNameTranslated(getFileOnlyNameBase().replace(".rtf", "_EN.rtf"));
+        setFileOnlyNameTranslatedEN(getFileOnlyNameBase().replace(".rtf", "_EN.txt"));
+        setFileOnlyNameBacktranslatedDE(getFileOnlyNameTranslatedEN().replace("_EN.txt", "_DE.txt"));
     }
 
     public ArrayList<NamedEntity> getNamedEntities(){
@@ -131,12 +134,12 @@ public class LegalFile {
         this.fileOnlyNameTagged = fileOnlyNameTagged;
     }
 
-    public String getFileOnlyNameTranslated() {
-        return fileOnlyNameTranslated;
+    public String getFileOnlyNameTranslatedEN() {
+        return fileOnlyNameTranslatedEN;
     }
 
-    public void setFileOnlyNameTranslated(String fileOnlyNameTranslated) {
-        this.fileOnlyNameTranslated = fileOnlyNameTranslated;
+    public void setFileOnlyNameTranslatedEN(String fileOnlyNameTranslatedEN) {
+        this.fileOnlyNameTranslatedEN = fileOnlyNameTranslatedEN;
     }
 
     public String getTaggedContent() {
@@ -177,5 +180,21 @@ public class LegalFile {
 
     public void setTranslatedContent(String translatedContent) {
         this.translatedContent = translatedContent;
+    }
+
+    public String getFileOnlyNameBacktranslatedDE() {
+        return fileOnlyNameBacktranslatedDE;
+    }
+
+    public void setFileOnlyNameBacktranslatedDE(String fileOnlyNameBacktranslatedDE) {
+        this.fileOnlyNameBacktranslatedDE = fileOnlyNameBacktranslatedDE;
+    }
+
+    public String getTranslatedTaggedContent() {
+        return translatedTaggedContent;
+    }
+
+    public void setTranslatedTaggedContent(String translatedTaggedContent) {
+        this.translatedTaggedContent = translatedTaggedContent;
     }
 }
