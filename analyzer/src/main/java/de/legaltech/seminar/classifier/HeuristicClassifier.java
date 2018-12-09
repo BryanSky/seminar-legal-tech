@@ -1,23 +1,34 @@
 package de.legaltech.seminar.classifier;
 
+import de.legaltech.seminar.constants.AnalyserConstant;
 import de.legaltech.seminar.entities.ClassificationResult;
 import de.legaltech.seminar.entities.LegalFile;
 import de.legaltech.seminar.entities.NamedEntity;
 import de.legaltech.seminar.entities.Paragraph;
 import de.legaltech.seminar.entities.Sentence;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
 public class HeuristicClassifier extends AbstractClassifier {
 
     //Count absolute Häufigkeit der Entities!!!
 
-    public static int vectorLength = 4;
-    public static float threshold = 0;
+    public static int vectorLength = 5;
+    public static float threshold = 0.575f;
     public static float[] baseProb = new float[vectorLength];
     public static String[] targetWords = new String[]{"amt", "behörde", "gericht", "klag", "straße", "land", "BFH", "BGH"};
+    private static List<String> tagList = null;
 
     private ClassificationResult result = new ClassificationResult();
 
     public ClassificationResult processFile(LegalFile file, boolean training, boolean test) {
+        if(!training)loadBaseProb();
         for (Paragraph paragraph : file.getParagraphs()) {
             processParagraph(paragraph);
         }
@@ -50,8 +61,22 @@ public class HeuristicClassifier extends AbstractClassifier {
     }
 
     private void loadBaseProb(){
-        //load base probability distribution from database
-        //calculate this beforehand an basis of the training data
+        String trainedVectorsFile = AnalyserConstant.HEURISTIC_TRAINED_VECTORS_FILE;
+        Path path = Paths.get(trainedVectorsFile);
+        Charset charset = Charset.forName("UTF-8");
+        try {
+            List<String> lines = Files.readAllLines(path, charset);
+            String[] personVector = lines.get(0).split("\t");
+            String[] organisationVector = lines.get(1).split("\t");
+            String[] locationVector = lines.get(2).split("\t");
+            float[] mergedProbabilities = new float[personVector.length];
+            for(int i=0; i<mergedProbabilities.length; i++){
+                mergedProbabilities[i] = Float.valueOf(personVector[i]) + Float.valueOf(organisationVector[i]) + Float.valueOf(locationVector[i]);
+            }
+            baseProb = mergedProbabilities;
+        } catch (IOException e) {
+            System.out.println(e);
+        }
     }
 
     private boolean probabilityAboveThreshold(float[] baseVector, float[] classificationVector, float threshold){
@@ -74,6 +99,7 @@ public class HeuristicClassifier extends AbstractClassifier {
         probVec[1] = calculateX2Prob(sentence, position);
         probVec[2] = calculateX3Prob(sentence, position);
         probVec[3] = calculateX4Prob(sentence, position);
+        probVec[3] = calculateX5Prob(sentence, position);
         return probVec;
     }
 
@@ -121,18 +147,41 @@ public class HeuristicClassifier extends AbstractClassifier {
         return 0;
     }
 
-    //TODO: get ready: names of authors often splitted by slash´s
     private static float calculateX5Prob(Sentence sentence, int position){
-        int count = 0;
-        for (String s : targetWords) {
-            if(sentence.get(position).contains("/")){
-                return 1;
-            }
+        if(position==0){
+            return 0;
+        }
+        if(sentence.get(position - 1).contains("/") || sentence.get(position + 1).contains("/")){
+            return 1;
         }
         return 0;
     }
 
-    //use outcomes of different papers to classify a file
+    private static float calculateX6Prob(Sentence sentence, int position){
+        List<String> tagList = getTagList();
+        if(tagList.contains(sentence.get(position)))return 1;
+        return 0;
+    }
+
+    private static List<String> getTagList(){
+        if(tagList == null){
+            tagList = new ArrayList<>();
+            Path path = Paths.get(AnalyserConstant.CSC_TSV_FILE_MAX);
+            Charset charset = Charset.forName("UTF-8");
+            try {
+                List<String> lines = Files.readAllLines(path, charset);
+                for (String line : lines) {
+                    String[] map = line.split("\t");
+                    tagList.add(map[0]);
+                }
+            } catch (IOException e) {
+                System.out.println(e);
+            }
+        }
+        return tagList;
+    }
+
+    //use outcomes of different papers to classifyOriginal a file
 
     //this is only used in test phase, not in production
     private void evaluateClassifierPerformance(){
