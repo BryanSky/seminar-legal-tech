@@ -6,7 +6,6 @@
 <div class="jumbotron">
     <h1>NER Dashboard</h1>
     <p class="lead">Use this dashboard to search for legal cases by specifying named entities.</p>
-    <p><a href="https://nlp.stanford.edu/software/CRF-NER.shtml" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
 </div>
 
 <div class="row">
@@ -31,12 +30,6 @@
                     </select>
                     <select class="form-control col-md-3" id="angeklagter" name="Angeklagter">
                         @foreach (var item in Model.LocationList)
-                        {
-                            <option value="@item">@item</option>
-                        }
-                    </select>
-                    <select class="form-control col-md-3" id="tags" name="Tag">
-                        @foreach (var item in Model.TagList)
                         {
                             <option value="@item">@item</option>
                         }
@@ -71,7 +64,7 @@
                             <td>@Html.DisplayFor(m => item.Klaeger)</td>
                             <td>@Html.DisplayFor(m => item.Theme)</td>
                             <td>@Html.DisplayFor(m => item.Target)</td>
-                            <td><a href="@Html.Label("Download")"></a></td>
+                            <td><a href="M:\Repos\seminar-legal-tech\dashboard\Dashboard\App_Data\Y-300-Z-BECKRS-B-2017-N-143660.pdf">@Html.Label("Download")</a></td>
                         </tr>
                     }
                     </tbody>
