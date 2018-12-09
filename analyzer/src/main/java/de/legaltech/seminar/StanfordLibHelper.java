@@ -1,5 +1,6 @@
 package de.legaltech.seminar;
 
+import de.legaltech.seminar.constants.AnalyserConstant;
 import de.legaltech.seminar.entities.ClassificationResult;
 import de.legaltech.seminar.entities.LegalFile;
 import de.legaltech.seminar.entities.NamedEntity;
@@ -19,34 +20,42 @@ import java.util.regex.Pattern;
 
 public class StanfordLibHelper {
 
-    public static final String STANDARD_CLASSIFIER_ENGLISH = "../../../../resources/data/classifiers/english.all.3class.distsim.crf.ser.gz";
+    public static final String STANDARD_CLASSIFIER_ENGLISH = AnalyserConstant.classifierRootPath + "english.all.3class.distsim.crf.ser.gz";
     public static final String STANDARD_CLASSIFIER_GERMAN = "";
-    public static final String CUSTOM_CLASSIFIER_GERMAN = "../../../../resources/data/classifiers/15german.all.3class.distsim.crf.ser.gz";
+    public static final String CUSTOM_CLASSIFIER_GERMAN = AnalyserConstant.classifierRootPath + "15german.all.3class.distsim.crf.ser.gz";
 
-    public static ClassificationResult classify(String classifier, LegalFile legalFile){
-        File file = new File(legalFile.getFilename());
+    public static ClassificationResult classifyOriginal(String classifier, LegalFile legalFile){
+        String taggedContent = tagContent(classifier, legalFile.getContent());
+        legalFile.setTaggedContent(taggedContent);
+        ClassificationResult classificationResult = buildClassificationResult(taggedContent);
+        classificationResult.setFileName(legalFile.getFilename());
+        return classificationResult;
+    }
+
+    public static ClassificationResult classifyTranslation(String classifier, LegalFile legalFile) {
+        String taggedContent = tagContent(classifier, legalFile.getTranslatedContent());
+        legalFile.setTranslatedTaggedContent(taggedContent);
+        ClassificationResult classificationResult = buildClassificationResult(taggedContent);
+        classificationResult.setFileName(legalFile.getFileOnlyNameTranslatedEN());
+        return classificationResult;
+    }
+
+    public static String tagContent(String classifier, String content){
+        CRFClassifier<CoreMap> nerClassifier = null;
         try {
-            String untaggedContent = legalFile.getContent();
-            if((untaggedContent == null || untaggedContent.equals("")) && file.exists()){
-                untaggedContent = openFile(file);
-            }
-            CRFClassifier<CoreMap> nerClassifier = CRFClassifier.getClassifier(new File(classifier));
-            String taggedContent = extract(untaggedContent, nerClassifier);
-            legalFile.setTaggedContent(taggedContent);
-            ClassificationResult classificationResult = buildClassificationResult(taggedContent);
-            classificationResult.setFileName(legalFile.getFilename());
-            return classificationResult;
+            nerClassifier = CRFClassifier.getClassifier(new File(classifier));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        } catch (BadLocationException e) {
-            e.printStackTrace();
         }
-        return new ClassificationResult();
+        String taggedContent = extract(content, nerClassifier);
+        return taggedContent;
     }
 
     public static ClassificationResult buildClassificationResult(String taggedContent) {
+        taggedContent = taggedContent.replace("LOCATION>", "Location>")
+                .replace("ORGANIZATION>", "Organisation>").replace("PERSON>", "Person>");
         ClassificationResult result = new ClassificationResult();
         result.setYear((new Date()).getYear());
         ArrayList<Pattern> patternList = new ArrayList<Pattern>();

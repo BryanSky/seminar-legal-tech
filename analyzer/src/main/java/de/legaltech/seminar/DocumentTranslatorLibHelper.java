@@ -6,10 +6,9 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.google.gson.*;
-import de.legaltech.seminar.entities.LegalFile;
-import de.legaltech.seminar.entities.Paragraph;
 import de.legaltech.seminar.exceptions.ItemTooLargeException;
 
 public class DocumentTranslatorLibHelper {
@@ -26,34 +25,31 @@ public class DocumentTranslatorLibHelper {
     static String params = "";
 
 
-    public static boolean translate(LegalFile legalFile, String sourceLanguage, String targetLanguage){
+    public static String translate(String content, String sourceLanguage, String targetLanguage){
         if(sourceLanguage.length()==2 && targetLanguage.length() == 2){
             params = "&from=" + sourceLanguage + "&to=" + targetLanguage;
         }else{
             params = paramsToEN;
         }
+        String response = "";
         try {
-            String content = legalFile.getContent();
-            String[] paragraphs = content.split("\r\n");
-            String response = "";
+            String[] paragraphs = content.split("\n");
             for (String paragraph : paragraphs) {
                 try{
-                    response += translate(paragraph) + "\r\n";
+                    response += translate(paragraph) + "\n";
                 }catch(ItemTooLargeException itle){
                     response += translateSingleSentences(paragraph);
                 }
             }
-            legalFile.setTranslatedContent(response);
         }
         catch (Exception e) {
             System.out.println (e);
-            return false;
         }
-        return true;
+        return response;
     }
 
     private static String translateSingleSentences(String paragraph){
-        String[] sentences = paragraph.split(".");
+        String[] sentences = paragraph.split(Pattern.quote("."));
         String response = "";
         for (String sentence : sentences) {
             try{
@@ -103,7 +99,7 @@ public class DocumentTranslatorLibHelper {
         }else if(responseCode==400){
             System.out.println("400: Bad request");
         } else if(responseCode == 200){
-            StringBuilder response = new StringBuilder ();
+            StringBuilder response = new StringBuilder();
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
             String line;
             while ((line = in.readLine()) != null) {
@@ -117,6 +113,22 @@ public class DocumentTranslatorLibHelper {
         return content;
     }
 
+    public static List<String> translateMultipleOutcomes(String text) throws Exception, ItemTooLargeException {
+        URL url = new URL (host + path + paramsToEN);
+
+        List<RequestBody> objList = new ArrayList<RequestBody>();
+        objList.add(new RequestBody(text));
+        String content = new Gson().toJson(objList);
+        if(content.length()>5000){
+            throw new ItemTooLargeException();
+        }
+        if(text != null && !text.equals("")){
+            String response = Post(url, content);
+            return extractArray(response);
+        }
+        return new ArrayList<>();
+    }
+
     public static String translate(String text) throws Exception, ItemTooLargeException {
         URL url = new URL (host + path + params);
 
@@ -126,16 +138,35 @@ public class DocumentTranslatorLibHelper {
         if(content.length()>5000){
             throw new ItemTooLargeException();
         }
-        String response = Post(url, content);
-        return extractTranslation(response);
+        if(text != null && !text.equals("")){
+            String response = Post(url, content);
+            return extractTranslation(response);
+        }
+        return text;
     }
 
     private static String extractTranslation(String response) {
+        response = response.replace("[", "").replace("]","");
         JsonParser parser = new JsonParser();
         JsonElement json = parser.parse(response);
-        JsonArray array = json.getAsJsonObject().getAsJsonArray("translations");
-        JsonElement translation = array.get(0);
-        return (translation.getAsJsonObject().get("text")).toString();
+        JsonElement translations = json.getAsJsonObject().get("translations");
+        JsonElement text = translations.getAsJsonObject().get("text");
+        return text.getAsString();
+    }
+
+    private static List<String> extractArray(String response) {
+        List<String> responseList = new ArrayList<>();
+        response = response.substring(1, response.length()-1);
+        response = response.replace(",\"to\":\"en\"", "");
+        JsonParser parser = new JsonParser();
+        JsonElement json = parser.parse(response);
+        JsonArray translations = json.getAsJsonObject().getAsJsonArray("translations");
+        for (int i=0; i<translations.size(); i++) {
+            JsonElement element = translations.get(i);
+            JsonElement text = element.getAsJsonObject().get("text");
+            responseList.add(text.getAsString());
+        }
+        return responseList;
     }
 
     public static String prettify(String json_text) {
