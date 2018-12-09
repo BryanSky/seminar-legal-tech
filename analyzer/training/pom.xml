@@ -24,7 +24,7 @@
     <dependencies>
         <dependency>
             <groupId>de.legaltech.seminar</groupId>
-            <artifactId>analyser</artifactId>
+            <artifactId>classifier</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
