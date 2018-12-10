@@ -32,6 +32,12 @@ public class HeuristicClassifier extends AbstractClassifier {
         for (Paragraph paragraph : file.getParagraphs()) {
             processParagraph(paragraph);
         }
+        String taggedContent = "";
+        for (NamedEntity nE : result.getNamedEntities()) {
+            String row = nE.getValue() + ": " + nE.getTag().getTagType();
+            taggedContent += row + "\n";
+        }
+        file.setTaggedContent(taggedContent);
         return result;
     }
 
@@ -157,6 +163,7 @@ public class HeuristicClassifier extends AbstractClassifier {
         return 0;
     }
 
+    //only testing case
     private static float calculateX6Prob(Sentence sentence, int position){
         List<String> tagList = getTagList();
         if(tagList.contains(sentence.get(position)))return 1;
@@ -181,7 +188,6 @@ public class HeuristicClassifier extends AbstractClassifier {
         return tagList;
     }
 
-    //use outcomes of different papers to classifyOriginal a file
 
     //this is only used in test phase, not in production
     private void evaluateClassifierPerformance(){

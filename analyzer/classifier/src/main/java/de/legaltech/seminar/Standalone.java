@@ -1,5 +1,6 @@
 package de.legaltech.seminar;
 
+import de.legaltech.seminar.classifier.DoubleTranslationClassifier;
 import de.legaltech.seminar.classifier.HeuristicClassifier;
 import de.legaltech.seminar.classifier.StanfordCustomClassifier;
 import de.legaltech.seminar.entities.ClassificationResult;
@@ -35,7 +36,7 @@ public class Standalone {
             setupClassifiers(args[1]);
         }
         classifiers.add(new HeuristicClassifier());
-        //classifiers.add(new DoubleTranslationClassifier());
+        classifiers.add(new DoubleTranslationClassifier());
         classifiers.add(new StanfordCustomClassifier());
         preprocessors.add(new DefaultPreprocessor());
         if((new File(args[0])).isDirectory()){
@@ -95,13 +96,13 @@ public class Standalone {
             ClassificationResult result = classifier.processFile(file, isTrainingCase, isTestingCase);
             result.setClassifier(classifier.getClass().getName());
             file.classificationResultMap.put(classifier, result);
-            //TODO: save different file names!!
-            classifier.saveTaggedFile(file, file.getFilename().replace(".rtf", "_TAGGED.rtf"));
+            FileManager.WriteToFile(file.getTaggedContent(), AnalyserConstant.fileBlobProcessed + file.getFileOnlyNameTagged()
+                    .replace(".txt", "_" +
+                            classifier.getClass().getSimpleName() + ".txt"));
             if(isTrainingCase || isTestingCase){
                 classifier.compareTaggedWithManuallyTagged(file.getFilename());
             }
         }
-        DbManager.Instance().saveClassifiedFile(file);
-        //TODO: write all file content to several files
+        //DbManager.Instance().saveClassifiedFile(file);
     }
 }

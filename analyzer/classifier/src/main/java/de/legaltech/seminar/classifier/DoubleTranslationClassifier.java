@@ -21,7 +21,7 @@ public class DoubleTranslationClassifier extends AbstractClassifier {
             return res1;
         }
         translateTaggedFile(file, DocumentTranslatorLibHelper.LANGUAGE_EN, DocumentTranslatorLibHelper.LANGUAGE_DE);
-        FileManager.WriteToFile(file.getTaggedContent(),file.getFilePath() + "translated/" + file.getFileOnlyNameBacktranslatedDE());
+        FileManager.WriteToFile(file.getTaggedContent(),AnalyserConstant.fileBlobProcessed + file.getFileOnlyNameBacktranslatedDE());
         ClassificationResult res = StanfordLibHelper.buildClassificationResult(file.getTaggedContent());
         return res;
     }

@@ -1,9 +1,10 @@
 package de.legaltech.seminar;
 
-import de.legaltech.seminar.entities.LegalFile;
-import de.legaltech.seminar.entities.NamedEntity;
+
 import de.legaltech.seminar.constants.AnalyserConstant;
 import de.legaltech.seminar.entities.ClassificationResult;
+import de.legaltech.seminar.entities.LegalFile;
+import de.legaltech.seminar.entities.NamedEntity;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.sequences.SeqClassifierFlags;

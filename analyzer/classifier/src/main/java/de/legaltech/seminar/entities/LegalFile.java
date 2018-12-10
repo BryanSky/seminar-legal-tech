@@ -51,9 +51,9 @@ public class LegalFile {
     }
 
     private void setFileNames(String filename){
-        setFilePath(filename.substring(0, filename.lastIndexOf("/")+1));
-        setFileOnlyNameBase(filename.substring(filename.lastIndexOf("/")+1));
-        setFileOnlyNameTagged(getFileOnlyNameBase().replace(".rtf", "_TAGGED.rtf"));
+        setFilePath(filename.substring(0, filename.lastIndexOf("\\")+1));
+        setFileOnlyNameBase(filename.substring(filename.lastIndexOf("\\")+1));
+        setFileOnlyNameTagged(getFileOnlyNameBase().replace(".rtf", "_TAGGED.txt"));
         setFileOnlyNameTranslatedEN(getFileOnlyNameBase().replace(".rtf", "_EN.txt"));
         setFileOnlyNameBacktranslatedDE(getFileOnlyNameTranslatedEN().replace("_EN.txt", "_DE.txt"));
     }
